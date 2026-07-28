@@ -15,7 +15,7 @@ class VisualGridHuntGame:
             self.walls = set(custom_walls)
         else:
             # Generate some default scattered walls for a larger grid
-            self.walls = {(2, 2), (2, 3), (5, 5), (6, 5), (3, 7)}
+            self.walls = {(2, 8), (2, 7), (5, 5), (6, 5), (3, 7)}
 
         # Dynamically generate random food positions avoiding walls and agent start
         self.food_positions = set()
@@ -89,7 +89,7 @@ class VisualGridHuntGame:
                 self.collision = True
 
     def is_done(self) -> bool:
-        return len(self.food_positions) == 0 or self.steps >= 60 or self.collision
+        return len(self.food_positions) == 0 or self.steps >= 300 or self.collision
 
 
 class GridGameGUI:
