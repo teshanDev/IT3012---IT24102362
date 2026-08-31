@@ -1,5 +1,5 @@
-from collections import deque
-import heapq
+from collections import heapq
+from logic_engine import KnowledgeBase
 
 
 class SearchAgent:
@@ -100,3 +100,40 @@ class SearchAgent:
         if self.plan:
             return self.plan.pop(0)
         return 'Stay'
+
+class DrowRangerAgent:
+    def __init__(self):
+        self.kb = KnowledgeBase()
+        # Step 3.1: Define domain Horn Clause rules
+        # Rule 1: TargetVisible ^ HasDust -> SafeToEngage
+        self.kb.tell_rule(['TargetVisible', 'HasDust'], 'SafeToEngage')
+        # Rule 2: SafeToEngage ^ BloodseekerMissing -> Retreat
+        self.kb.tell_rule(['SafeToEngage', 'BloodseekerMissing'], 'Retreat')
+
+    def is_tile_feasible(self, tile_percepts: list) -> bool:
+        """
+        Step 3.2: Validates whether a tile is logically safe to traverse.
+        """
+        self.kb.clear_facts()
+        for fact in tile_percepts:
+            self.kb.tell_fact(fact)
+        
+        self.kb.forward_chain()
+        
+        # If 'Retreat' is deduced, the tile is dangerous / Infeasible
+        return 'Retreat' not in self.kb.facts
+
+    def get_valid_neighbors(self, current_pos, grid, enemy_percepts):
+        valid_neighbors = []
+        for next_pos in self.get_adjacent(current_pos):
+            # 1. Physical Reachability Check
+            if grid.is_wall(next_pos):
+                continue
+
+            # 2. Logical Feasibility Check via KB
+            percepts_for_tile = enemy_percepts.get(next_pos, [])
+            if not self.is_tile_feasible(percepts_for_tile):
+                continue  # Skip infeasible tile
+
+            valid_neighbors.append(next_pos)
+        return valid_neighbors
